@@ -31,7 +31,9 @@ export default {
     };
   },
   methods: {
-    updateCardNumber(val) {},
+    updateCardNumber(val) {
+      console.log(val);
+    },
     updateCardName(val) {},
     updateCardMonth(val) {},
     updateCardYear(val) {},

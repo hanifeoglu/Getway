@@ -30,4 +30,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'denizbank' => [
+        'endpoint' => env('DENIZBANK_ENDPOINT', 'https://sanaltest.denizbank.com/mpi/Default.aspx'),
+        'shopcode' => env('DENIZBANK_SHOPCODE', '3123'),
+        'usercode' => env('DENIZBANK_USERCODE', 'InterTestApi'),
+        'userpass' => env('DENIZBANK_USERPASS', '3'),
+        'currencycode' => env('DENIZBANK_CURRENCYCODE', '840'),
+    ]
+
 ];

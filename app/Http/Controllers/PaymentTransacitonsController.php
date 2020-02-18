@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\PaymentTransacitons;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use GuzzleHttp\Client;
 
 class PaymentTransacitonsController extends Controller
 {
@@ -147,7 +148,36 @@ class PaymentTransacitonsController extends Controller
     }
      */
 
-
+    public function makePayment(Request $request, $key)
+    {
+        $paymentOrder = PaymentTransacitons::where('key', $key)->firstOrFail();
+        $client = new Client();
+        $data = [
+            "ShopCode" => config('services.denizbank.shopcode'),
+            "PurchAmount" => $paymentOrder->amount,
+            "Currency" => config('services.denizbank.currencycode'),
+            "OrderId" => "",
+            "InstallmentCount" => "",
+            "TxnType" => "Auth",
+            "orgOrderId" => "",
+            "UserCode" => config('services.denizbank.usercode'),
+            "UserPass" => config('services.denizbank.userpass'),
+            "SecureType" => "NonSecure",
+            "Pan" => $request->input('pan'),
+            "Expiry" => $request->input('expiry'),
+            "Cvv2" => $request->input('cvv2'),
+            "BonusAmount" => "",
+            "CardType" => 0,
+            "Lang" => "EN",
+            "MOTO" => ""
+        ];
+        $paymentResponse = $client(
+            'POST', 
+            config('services.denizbank.endpoint'),
+            ['form_params' => $data]
+        );
+        dd($paymentResponse);
+    }
 
 
 }
