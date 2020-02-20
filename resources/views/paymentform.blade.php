@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html lang="en" >
 <head>
-    <meta charset="UTF-8">
-    <title>CodePen - Credit Card Form - VueJs-last</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="payment-key" content="{{ $transaction->key }}">
+
+    <title>{{ config('app.name', 'Laravel') }}</title>
 </head>
 <body>
 <!-- partial:index.partial.html -->

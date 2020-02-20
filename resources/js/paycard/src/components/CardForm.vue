@@ -99,7 +99,7 @@
         </div>
       </div>
 
-      <button class="card-form__button" v-on:click="invaildCard">Submit</button>
+      <button class="card-form__button" v-on:click="submitForm">Submit</button>
     </div>
   </div>
 </template>
@@ -188,6 +188,9 @@ export default {
     this.maskCardNumber();
   },
   methods: {
+    submitForm() {
+      this.$emit("submit-form");
+    },
     generateMonthValue(n) {
       return n < 10 ? `0${n}` : n;
     },

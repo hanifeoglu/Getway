@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\PaymentTransacitons;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use GuzzleHttp\Client;
 
 class PaymentTransacitonsController extends Controller
 {
@@ -51,14 +51,12 @@ class PaymentTransacitonsController extends Controller
         $PaymentTransacitons->phone = $request->input('phone');
         $PaymentTransacitons->description = $request->input('description');
         $PaymentTransacitons->amount = $request->input('amount');
-        $PaymentTransacitons->key =  Str::uuid()->toString();
-
+        $PaymentTransacitons->key = Str::uuid()->toString();
 
         $PaymentTransacitons->save();
         return redirect(route('payments.list'));
 
     }
-
 
     /**
      * Display the specified resource.
@@ -80,76 +78,22 @@ class PaymentTransacitonsController extends Controller
         return datatables()->of($payments)
             ->make(true);
 
-
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\PaymentTransacitons  $paymentTransacitons
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(PaymentTransacitons $paymentTransacitons)
+    public function detail($key)
     {
-        //
+        return PaymentTransacitons::where('key', $key)->firstOrFail();
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\PaymentTransacitons  $paymentTransacitons
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, PaymentTransacitons $paymentTransacitons)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\PaymentTransacitons  $paymentTransacitons
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(PaymentTransacitons $paymentTransacitons)
-    {
-        //
-    }
-
-
-
-    /**
-
-     try {
-
-    // Generate a version 1 (time-based) UUID object
-    $uuid1 = Uuid::uuid1();
-    echo $uuid1->toString() . "\n"; // i.e. e4eaaaf2-d142-11e1-b3e4-080027620cdd
-
-    // Generate a version 3 (name-based and hashed with MD5) UUID object
-    $uuid3 = Uuid::uuid3(Uuid::NAMESPACE_DNS, 'php.net');
-    echo $uuid3->toString() . "\n"; // i.e. 11a38b9a-b3da-360f-9353-a5a725514269
-
-    // Generate a version 4 (random) UUID object
-    $uuid4 = Uuid::uuid4();
-    echo $uuid4->toString() . "\n"; // i.e. 25769c6c-d34d-4bfe-ba98-e0ee856f3e7a
-
-    // Generate a version 5 (name-based and hashed with SHA1) UUID object
-    $uuid5 = Uuid::uuid5(Uuid::NAMESPACE_DNS, 'php.net');
-    echo $uuid5->toString() . "\n"; // i.e. c4a760a8-dbcf-5254-a0d9-6a4474bd1b62
-
-    } catch (UnsatisfiedDependencyException $e) {
-
-    // Some dependency was not met. Either the method cannot be called on a
-    // 32-bit system, or it can, but it relies on Moontoast\Math to be present.
-    echo 'Caught exception: ' . $e->getMessage() . "\n";
-
-    }
-     */
 
     public function makePayment(Request $request, $key)
     {
+        $request->validate([
+            "pan" => "required|digits:16",
+            "expiry" => "required|digits:4",
+            "cvv2" => "required|digits:3",
+            "type" => "required|in:visa,mastercard",
+        ]);
+
         $paymentOrder = PaymentTransacitons::where('key', $key)->firstOrFail();
         $client = new Client();
         $data = [
@@ -167,17 +111,29 @@ class PaymentTransacitonsController extends Controller
             "Expiry" => $request->input('expiry'),
             "Cvv2" => $request->input('cvv2'),
             "BonusAmount" => "",
-            "CardType" => 0,
+            "CardType" => $request->input('type') == "visa" ? 0 : 1,
             "Lang" => "EN",
-            "MOTO" => ""
+            "MOTO" => "",
         ];
-        $paymentResponse = $client(
-            'POST', 
+        $paymentResponse = $client->request(
+            'POST',
             config('services.denizbank.endpoint'),
             ['form_params' => $data]
         );
-        dd($paymentResponse);
-    }
+        $responseText = $paymentResponse->getBody()->getContents();
 
+        $keysAndValues = explode(';;', $responseText);
+
+        $resp = [];
+        foreach ($keysAndValues as $keyAndValue) {
+            $seperated = explode("=", $keyAndValue);
+            $resp[$seperated[0]] = $seperated[1];
+        }
+
+        // Test kartının kart sahibi isim alanı bozuk karakterlerle geldiğinden JSON encode olmuyor, canlı ortamda kaldırılacak
+        $resp["CardHolderName"] = "Falan Filan";
+
+        return $resp;
+    }
 
 }
