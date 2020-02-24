@@ -1,16 +1,28 @@
 <template>
-  <div class="wrapper" id="appi">
+  <div class="wrapper" v-if="payment">
     <div class="card-form">
       <div class="card-form__inner" style="padding:35px;margin-bottom:35px;text-align:center;">
-        <div v-if="payment">
+        <div>
           <h1>{{payment.name}}</h1>
           <p>{{payment.description}}</p>
           <h2>$ {{payment.amount}}</h2>
+          <span v-if="payment.is_paid" style="color:green;">
+            <h3>Thank you for payment.</h3>
+            <p>Your payment received at {{payment.paid_at}}</p>
+          </span>
+          <span v-if="onProcess" style="color:orange;">
+            <h3>Please Wait</h3>
+            <p>Getting your payment. Please wait.</p>
+          </span>
+          <span v-if="error" style="color:red;">
+            <h3>Error!</h3>
+            <p>{{error}}</p>
+          </span>
         </div>
-        <div v-else>Loading payment details.</div>
       </div>
     </div>
     <CardForm
+      v-if="!payment.is_paid && !onProcess"
       :form-data="formData"
       @input-card-number="updateCardNumber"
       @input-card-name="updateCardName"
@@ -21,6 +33,7 @@
     />
     <!-- backgroundImage="https://images.unsplash.com/photo-1572336183013-960c3e1a0b54?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80" -->
   </div>
+  <div v-else>Loading payment details ...</div>
 </template>
 
 <script>
@@ -40,7 +53,9 @@ export default {
         cardCvv: ""
       },
       rawCardNumber: "",
-      payment: null
+      payment: null,
+      error: null,
+      onProcess: false
     };
   },
   methods: {
@@ -52,6 +67,8 @@ export default {
     updateCardYear(val) {},
     updateCardCvv(val) {},
     sendPayment() {
+      this.error = null;
+      this.onProcess = true;
       axios
         .post(`/payments/${this.paymentKey}`, {
           pan: this.formattedCardNumber,
@@ -61,9 +78,20 @@ export default {
         })
         .then(response => {
           console.log(response);
+          this.payment = response.data.payment;
         })
         .catch(error => {
           console.log(error);
+          if (error.response.data.payment) {
+            this.payment = error.response.data.payment;
+          }
+
+          if (error.response.data.message) {
+            this.error = error.response.data.message;
+          }
+        })
+        .then(() => {
+          this.onProcess = false;
         });
     }
   },

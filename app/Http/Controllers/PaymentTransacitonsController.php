@@ -75,7 +75,16 @@ class PaymentTransacitonsController extends Controller
     public function paymentsList()
     {
         $payments = PaymentTransacitons::latest()->get();
-        return datatables()->of($payments)
+        return datatables()
+            ->of($payments)
+            ->editColumn('amount', '${{$amount}}')
+            ->addColumn('link', '<a href="{!!route("payments.show", $key)!!}" target="_blank">Ödeme Sayfası</a><br><button onclick="copyTextToClipboard(\'{!!route("payments.show", $key)!!}\')">Kopyala</button>')
+            ->addColumn('status', function (PaymentTransacitons $paymentOrder) {
+                return $paymentOrder->is_paid ?
+                '<strong style="color:green;">Ödendi</strong>' :
+                '<strong style="color:red;">Ödeme Bekliyor</strong>';
+            })
+            ->rawColumns(['link', 'copy_link', 'status'])
             ->make(true);
 
     }
@@ -95,45 +104,65 @@ class PaymentTransacitonsController extends Controller
         ]);
 
         $paymentOrder = PaymentTransacitons::where('key', $key)->firstOrFail();
-        $client = new Client();
-        $data = [
-            "ShopCode" => config('services.denizbank.shopcode'),
-            "PurchAmount" => $paymentOrder->amount,
-            "Currency" => config('services.denizbank.currencycode'),
-            "OrderId" => "",
-            "InstallmentCount" => "",
-            "TxnType" => "Auth",
-            "orgOrderId" => "",
-            "UserCode" => config('services.denizbank.usercode'),
-            "UserPass" => config('services.denizbank.userpass'),
-            "SecureType" => "NonSecure",
-            "Pan" => $request->input('pan'),
-            "Expiry" => $request->input('expiry'),
-            "Cvv2" => $request->input('cvv2'),
-            "BonusAmount" => "",
-            "CardType" => $request->input('type') == "visa" ? 0 : 1,
-            "Lang" => "EN",
-            "MOTO" => "",
-        ];
-        $paymentResponse = $client->request(
-            'POST',
-            config('services.denizbank.endpoint'),
-            ['form_params' => $data]
-        );
-        $responseText = $paymentResponse->getBody()->getContents();
 
-        $keysAndValues = explode(';;', $responseText);
-
-        $resp = [];
-        foreach ($keysAndValues as $keyAndValue) {
-            $seperated = explode("=", $keyAndValue);
-            $resp[$seperated[0]] = $seperated[1];
+        if ($paymentOrder->is_paid) {
+            return response()->json(['message' => "Already paid at {$paymentOrder->paid_at}", 'payment' => $paymentOrder], 422);
         }
 
-        // Test kartının kart sahibi isim alanı bozuk karakterlerle geldiğinden JSON encode olmuyor, canlı ortamda kaldırılacak
-        $resp["CardHolderName"] = "Falan Filan";
+        try {
+            $client = new Client();
+            $data = [
+                "ShopCode" => config('services.denizbank.shopcode'),
+                "PurchAmount" => $paymentOrder->amount,
+                "Currency" => config('services.denizbank.currencycode'),
+                "OrderId" => "",
+                "InstallmentCount" => "",
+                "TxnType" => "Auth",
+                "orgOrderId" => "",
+                "UserCode" => config('services.denizbank.usercode'),
+                "UserPass" => config('services.denizbank.userpass'),
+                "SecureType" => "NonSecure",
+                "Pan" => $request->input('pan'),
+                "Expiry" => $request->input('expiry'),
+                "Cvv2" => $request->input('cvv2'),
+                "BonusAmount" => "",
+                "CardType" => $request->input('type') == "visa" ? 0 : 1,
+                "Lang" => "EN",
+                "MOTO" => "",
+            ];
+            $paymentResponse = $client->request(
+                'POST',
+                config('services.denizbank.endpoint'),
+                ['form_params' => $data]
+            );
+            $responseText = $paymentResponse->getBody()->getContents();
 
-        return $resp;
+            $keysAndValues = explode(';;', $responseText);
+
+            $resp = [];
+            foreach ($keysAndValues as $keyAndValue) {
+                $seperated = explode("=", $keyAndValue);
+                $resp[$seperated[0]] = $seperated[1];
+            }
+
+            // Test kartının kart sahibi isim alanı bozuk karakterlerle geldiğinden JSON encode olmuyor, canlı ortamda kaldırılacak
+            $resp["CardHolderName"] = "Falan Filan";
+
+            if ($resp["TxnResult"] == "Success") {
+                $paymentOrder->paid_at = now();
+                $paymentOrder->save();
+                return response()->json(['message' => $resp['TxnResult'], 'payment' => $paymentOrder]);
+            } else {
+                return response()->json(['message' => "Bank Message: " . $resp['ErrorMessage'], 'payment' => $paymentOrder, 'bank_detail' => $resp], 424);
+            }
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => "Server error. Please try again later. {$e->getMessage()}",
+                'payment' => $paymentOrder],
+                500);
+        }
+
     }
 
 }

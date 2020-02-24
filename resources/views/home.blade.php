@@ -41,10 +41,10 @@
                         </div>
 
                         <div class="form-group row">
-                            <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Telefon') }}</label>
+                            <label for="phone" class="col-md-4 col-form-label text-md-right">{{ __('Telefon') }}</label>
 
                             <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}" required autocomplete="phone" >
+                                <input id="phone" type="text" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone') }}" required autocomplete="phone" >
 
                                 @error('phone')
                                 <span class="invalid-feedback" role="alert">
@@ -55,10 +55,10 @@
                         </div>
 
                         <div class="form-group row">
-                            <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Hizmet Türü') }}</label>
+                            <label for="description" class="col-md-4 col-form-label text-md-right">{{ __('Hizmet Türü') }}</label>
 
                             <div class="col-md-6">
-                                <input id="name" type="text" class="form-control @error('product') is-invalid @enderror" name="description" value="{{ old('description') }}" required autocomplete="description" >
+                                <input id="description" type="text" class="form-control @error('product') is-invalid @enderror" name="description" value="{{ old('description') }}" required autocomplete="description" >
 
                                 @error('description')
                                 <span class="invalid-feedback" role="alert">
@@ -68,12 +68,12 @@
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="name" class="col-md-4 col-form-label text-md-right">{{ __('Tutar') }}</label>
+                            <label for="amount" class="col-md-4 col-form-label text-md-right">{{ __('Tutar') }}</label>
 
                             <div class="col-md-6">
 
                                 <div class="input-group mb-3">
-                                    <input id="name" type="text" class="form-control @error('amount') is-invalid @enderror" name="amount" value="{{ old('amount') }}" required>
+                                    <input id="amount" type="text" class="form-control @error('amount') is-invalid @enderror" name="amount" value="{{ old('amount') }}" required>
                                     <div class="input-group-append">
                                         <span class="input-group-text">$</span>
                                     </div>

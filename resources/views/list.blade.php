@@ -10,7 +10,10 @@
             <th>Açıklama</th>
             <th>Tutar</th>
             <th>E-mail</th>
-            <th>Tarih</th>
+            <th>Oluşuturulma Tarihi</th>
+            <th>Ödeme Tarihi</th>
+            <th>Ödeme Bağlantısı</th>
+            <th>Durum</th>
         </tr>
         </thead>
     </table>
@@ -18,8 +21,6 @@
 @endsection
 
 @section('scripts')
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js" defer></script>
 <script>
     $(document).ready( function () {
@@ -37,9 +38,43 @@
                 { data: 'description', name: 'description' },
                 { data: 'amount', name: 'amount' },
                 { data: 'email', name: 'email' },
-                { data: 'created_at', name: 'created_at' }
+                { data: 'created_at', name: 'created_at' },
+                { data: 'paid_at', name: 'paid_at' },
+                { data: 'link', name: 'link' },
+                { data: 'status', name: 'status' },
             ]
         });
     });
+</script>
+<script>
+function fallbackCopyTextToClipboard(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position="fixed";  //avoid scrolling to bottom
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        var successful = document.execCommand('copy');
+        var msg = successful ? 'successful' : 'unsuccessful';
+        alert("Bağlantı kopyalandı");
+    } catch (err) {
+        console.error('Fallback: Oops, unable to copy', err);
+    }
+
+    document.body.removeChild(textArea);
+    }
+function copyTextToClipboard(text) {
+    if (!navigator.clipboard) {
+        fallbackCopyTextToClipboard(text);
+        return;
+    }
+    navigator.clipboard.writeText(text).then(function() {
+        alert("Bağlantı kopyalandı");
+    }, function(err) {
+        console.error('Async: Could not copy text: ', err);
+    });
+}
 </script>
 @endsection

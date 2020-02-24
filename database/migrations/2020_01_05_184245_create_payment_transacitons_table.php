@@ -21,6 +21,7 @@ class CreatePaymentTransacitonsTable extends Migration
             $table->string('description');
             $table->float('amount');
             $table->uuid('key')->unique();
+            $table->datetime('paid_at')->nullable();
             $table->timestamps();
         });
     }

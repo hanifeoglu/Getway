@@ -15,6 +15,10 @@ Route::get('/', function () {
     return redirect()->route('payments.list');
 });
 
+Route::get('/home', function () {
+    return redirect()->route('payments.list');
+});
+
 Auth::routes();
 
 Route::get('payments/create', 'PaymentTransacitonsController@create')->name('payments.create')->middleware(['auth']);
@@ -24,7 +28,3 @@ Route::get('list', 'PaymentTransacitonsController@paymentsList')->name('payments
 Route::get('payments/{key}', 'PaymentTransacitonsController@show')->name('payments.show');
 Route::get('payment/{key}', 'PaymentTransacitonsController@detail')->name('payments.detail');
 Route::post('payments/{key}', 'PaymentTransacitonsController@makePayment')->name('payments.make');
-
-Route::get('homepage', function () {
-    return view('welcome');
-});
