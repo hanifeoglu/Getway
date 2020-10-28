@@ -19,7 +19,7 @@ Route::get('/home', function () {
     return redirect()->route('payments.list');
 });
 
-Auth::routes();
+Auth::routes(['register' => false]);
 
 Route::get('payments/create', 'PaymentTransacitonsController@create')->name('payments.create')->middleware(['auth']);
 Route::post('payments', 'PaymentTransacitonsController@store')->name('payments.store')->middleware(['auth']);
