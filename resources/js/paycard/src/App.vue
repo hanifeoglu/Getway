@@ -1,22 +1,25 @@
 <template>
   <div class="wrapper" v-if="payment">
     <div class="card-form">
-      <div class="card-form__inner" style="padding:35px;margin-bottom:35px;text-align:center;">
+      <div
+        class="card-form__inner"
+        style="padding: 35px; margin-bottom: 35px; text-align: center"
+      >
         <div>
-          <h1>{{payment.name}}</h1>
-          <p>{{payment.description}}</p>
-          <h2>$ {{payment.amount}}</h2>
-          <span v-if="payment.is_paid" style="color:green;">
+          <h1>{{ payment.name }}</h1>
+          <p>{{ payment.description }}</p>
+          <h2>{{ payment.amount }} TL</h2>
+          <span v-if="payment.is_paid" style="color: green">
             <h3>Thank you for payment.</h3>
-            <p>Your payment received at {{payment.paid_at}}</p>
+            <p>Your payment received at {{ payment.paid_at }}</p>
           </span>
-          <span v-if="onProcess" style="color:orange;">
+          <span v-if="onProcess" style="color: orange">
             <h3>Please Wait</h3>
             <p>Getting your payment. Please wait.</p>
           </span>
-          <span v-if="error" style="color:red;">
+          <span v-if="paymentError" style="color: red">
             <h3>Error!</h3>
-            <p>{{error}}</p>
+            <p>{{ paymentError }}</p>
           </span>
         </div>
       </div>
@@ -31,7 +34,38 @@
       @input-card-cvv="updateCardCvv"
       @submit-form="sendPayment"
     />
-    <!-- backgroundImage="https://images.unsplash.com/photo-1572336183013-960c3e1a0b54?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2250&q=80" -->
+    <form
+      id="real3DForm"
+      method="post"
+      :action="paymentFormData.endpoint"
+      style="display: none"
+    >
+      <input type="hidden" name="Pan" v-model="formattedCardNumber" />
+      <input type="hidden" name="Cvv2" v-model="formData.cardCvv" />
+      <input type="hidden" name="Expiry" v-model="formattedExpiry" />
+      <input type="hidden" name="BonusAmount" value="" />
+      <input type="hidden" name="CardType" value="0" />
+      <input type="hidden" name="ShopCode" :value="paymentFormData.shopCode" />
+      <input
+        type="hidden"
+        name="PurchAmount"
+        :value="paymentFormData.purchaseAmount"
+      />
+      <input type="hidden" name="Currency" :value="paymentFormData.currency" />
+      <input type="hidden" name="OrderId" :value="paymentFormData.orderId" />
+      <input type="hidden" name="OkUrl" :value="paymentFormData.okUrl" />
+      <input type="hidden" name="FailUrl" :value="paymentFormData.failUrl" />
+      <input type="hidden" name="Rnd" :value="paymentFormData.rnd" />
+      <input type="hidden" name="Hash" :value="paymentFormData.hash" />
+      <input type="hidden" name="TxnType" :value="paymentFormData.txnType" />
+      <input
+        type="hidden"
+        name="InstallmentCount"
+        :value="paymentFormData.installmentCount"
+      />
+      <input type="hidden" name="SecureType" value="3DPay" />
+      <input type="hidden" name="Lang" value="en" />
+    </form>
   </div>
   <div v-else>Loading payment details ...</div>
 </template>
@@ -41,7 +75,7 @@ import CardForm from "./components/CardForm";
 export default {
   name: "app",
   components: {
-    CardForm
+    CardForm,
   },
   data() {
     return {
@@ -50,12 +84,25 @@ export default {
         cardNumber: "",
         cardMonth: "",
         cardYear: "",
-        cardCvv: ""
+        cardCvv: "",
       },
       rawCardNumber: "",
       payment: null,
       error: null,
-      onProcess: false
+      onProcess: false,
+      paymentFormData: {
+        endpoint: "",
+        shopCode: "",
+        purchaseAmount: "",
+        orderId: "",
+        currency: "",
+        okUrl: "",
+        failUrl: "",
+        rnd: "",
+        installmentCount: "",
+        txnType: "",
+        hash: "",
+      },
     };
   },
   methods: {
@@ -69,35 +116,15 @@ export default {
     sendPayment() {
       this.error = null;
       this.onProcess = true;
-      axios
-        .post(`/payments/${this.paymentKey}`, {
-          pan: this.formattedCardNumber,
-          expiry: this.formattedExpiry,
-          cvv2: this.formData.cardCvv,
-          type: this.cardType
-        })
-        .then(response => {
-          console.log(response);
-          this.payment = response.data.payment;
-        })
-        .catch(error => {
-          console.log(error);
-          if (error.response.data.payment) {
-            this.payment = error.response.data.payment;
-          }
-
-          if (error.response.data.message) {
-            this.error = error.response.data.message;
-          }
-        })
-        .then(() => {
-          this.onProcess = false;
-        });
-    }
+      document.getElementById("real3DForm").submit();
+    },
   },
   computed: {
     paymentKey() {
       return document.head.querySelector('meta[name="payment-key"]').content;
+    },
+    paymentError() {
+      return document.head.querySelector('meta[name="payment-error"]').content;
     },
     formattedCardNumber() {
       return this.rawCardNumber.replace(/\s/g, "");
@@ -134,13 +161,14 @@ export default {
       if (number.match(re) != null) return "jcb";
 
       return ""; // default type
-    }
+    },
   },
   beforeMount() {
-    axios.get(`/payment/${this.paymentKey}`).then(response => {
-      this.payment = response.data;
+    axios.get(`/payment/${this.paymentKey}`).then((response) => {
+      this.payment = response.data.payment;
+      this.paymentFormData = response.data.formdata;
     });
-  }
+  },
 };
 </script>
 

@@ -35,7 +35,9 @@ return [
         'shopcode' => env('DENIZBANK_SHOPCODE', '3123'),
         'usercode' => env('DENIZBANK_USERCODE', 'InterTestApi'),
         'userpass' => env('DENIZBANK_USERPASS', '3'),
-        'currencycode' => env('DENIZBANK_CURRENCYCODE', '840'),
+        'currencycode' => env('DENIZBANK_CURRENCYCODE', '949'),
+        'merchantpass' => env('DENIZBANK_MERCHANTPASS', 'gDg1N'),
+
     ]
 
 ];

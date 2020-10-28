@@ -27,4 +27,5 @@ Route::get('payments', 'PaymentTransacitonsController@index')->name('payments.li
 Route::get('list', 'PaymentTransacitonsController@paymentsList')->name('payments.json')->middleware(['auth']);
 Route::get('payments/{key}', 'PaymentTransacitonsController@show')->name('payments.show');
 Route::get('payment/{key}', 'PaymentTransacitonsController@detail')->name('payments.detail');
+Route::post('payments/{key}/result', 'PaymentTransacitonsController@returnOf3D')->name('payments.result');
 Route::post('payments/{key}', 'PaymentTransacitonsController@makePayment')->name('payments.make');
