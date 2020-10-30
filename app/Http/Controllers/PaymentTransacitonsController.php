@@ -218,7 +218,7 @@ class PaymentTransacitonsController extends Controller
         if ($paramsval != $hashparamsval || $hashparam != $hash) {
             $message = "Security error. Hash cannot be confirmed.";
             if (!empty($request->input('ErrorCode'))) $message .= "<br>BANK ERROR CODE: " . $request->input('ErrorCode');
-            if (!empty($request->input('ErrorMessage'))) $message .= "<br>BANK ERROR CODE: " . $request->input('ErrorMessage');
+            if (!empty($request->input('ErrorMessage'))) $message .= "<br>BANK ERROR MESSAGE: " . $request->input('ErrorMessage');
             return response($message, 401);
         }
 
