@@ -216,7 +216,10 @@ class PaymentTransacitonsController extends Controller
         $hash = base64_encode(pack('H*', sha1($hashval)));
 
         if ($paramsval != $hashparamsval || $hashparam != $hash) {
-            return response('Security error. Hash cannot be confirmed.', 401);
+            $message = "Security error. Hash cannot be confirmed.";
+            if (!empty($request->input('ErrorCode'))) $message .= "<br>BANK ERROR CODE: " . $request->input('ErrorCode');
+            if (!empty($request->input('ErrorMessage'))) $message .= "<br>BANK ERROR CODE: " . $request->input('ErrorMessage');
+            return response($message, 401);
         }
 
         // if ($request->input('OrderId') != $key) {
@@ -227,7 +230,7 @@ class PaymentTransacitonsController extends Controller
 
         $Status = $request->input('3DStatus');
         $paymentError = false;
-        $ErrMsg = $request->input('ErrorMessage');
+        $ErrMsg = $request->input('ErrorCode') . " - " . $request->input('ErrorMessage');
 
         if ($Status == 1 || $Status == 2 || $Status == 3 || $Status == 4) {
             $response = $request->input('ProcReturnCode');
