@@ -8,7 +8,7 @@
         <div>
           <h1>{{ payment.name }}</h1>
           <p>{{ payment.description }}</p>
-          <h2>{{ payment.amount }} TL</h2>
+          <h2>&dollar; {{ payment.amount }}</h2>
           <span v-if="payment.is_paid" style="color: green">
             <h3>Thank you for payment.</h3>
             <p>Your payment received at {{ payment.paid_at }}</p>
