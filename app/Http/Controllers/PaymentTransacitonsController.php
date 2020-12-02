@@ -75,7 +75,7 @@ class PaymentTransacitonsController extends Controller
         $payments = PaymentTransacitons::latest()->get();
         return datatables()
             ->of($payments)
-            ->editColumn('amount', '{{$amount}} TL')
+            ->editColumn('amount', '&dollar; {{$amount}}')
             ->addColumn('link', '<a href="{!!route("payments.show", $key)!!}" target="_blank">Ödeme Sayfası</a><br><button onclick="copyTextToClipboard(\'{!!route("payments.show", $key)!!}\')">Kopyala</button>')
             ->addColumn('status', function (PaymentTransacitons $paymentOrder) {
                 return $paymentOrder->is_paid ?
