@@ -75,7 +75,7 @@
                                 <div class="input-group mb-3">
                                     <input id="amount" type="text" class="form-control @error('amount') is-invalid @enderror" name="amount" value="{{ old('amount') }}" required>
                                     <div class="input-group-append">
-                                        <span class="input-group-text">TL</span>
+                                        <span class="input-group-text">&dollar;</span>
                                     </div>
                                 </div>
 
